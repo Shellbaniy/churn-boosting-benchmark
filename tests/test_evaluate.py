@@ -1,6 +1,9 @@
 """Тесты этапа 6: формула прибыли, подбор порога только по OOF, изоляция теста, число деревьев tuned.
 
 Тестовая часть split читается ровно один раз и только для проверки страховки протокола.
+Финальные этапы (таблица, эталонные стратегии, чувствительность, фигуры, parquet) прогоняются
+целиком на синтетических метках и вероятностях: обученные модели для них не нужны, но проверка
+ловит опечатки в колонках таблиц и обращения к необъявленным именам.
 """
 from __future__ import annotations
 
@@ -9,21 +12,31 @@ from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 from sklearn.model_selection import StratifiedKFold
 
+from src.config import load_business_config
 from src.evaluate import (
+    TABLE_COLUMNS,
     TUNED_LOGREG_FIXED,
     ModelSpec,
+    benchmark_table,
+    build_sensitivity_table,
     build_specs,
     final_best_keys,
     load_test_frame,
+    make_figures,
     oof_predictions,
+    predictions_frame,
+    print_benchmark_report,
     profit_at_threshold,
     reset_test_reads,
+    save_test_artifacts,
     select_threshold,
     tuned_params,
 )
+from src.pipelines import DUMMY_MODEL
 from src.tune import FIXED_LOGREG_PARAMS
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -230,3 +243,113 @@ def test_oof_raises_without_positive_class_in_fold(small_train, cfg) -> None:
     )
     with pytest.raises(ValueError, match="положительного класса"):
         oof_predictions(dummy, X, y, [(train_idx, valid_idx)], run_cfg)
+
+
+def test_final_stage_artifacts_on_synthetic_probabilities(tmp_path, cfg) -> None:
+    """Финальная часть без обучения: таблица, эталоны, чувствительность, фигуры и parquet в tmp_path.
+
+    Проверяются ровно те функции, которые вызывает run_benchmark после предсказаний теста, поэтому
+    тест падает на опечатке в колонке таблицы или на обращении к необъявленному имени.
+    """
+    business = load_business_config()
+    rng = np.random.default_rng(cfg.seed)
+    size = 300
+    y_test = pd.Series((rng.random(size) < 0.30).astype(int), name=cfg.target)
+    signal = 0.25 * y_test.to_numpy() + rng.normal(0.0, 0.10, size)
+    test_proba = {
+        DUMMY_MODEL: np.full(size, float(y_test.mean())),
+        "model_a_tuned": np.clip(signal + 0.05, 0.0, 1.0),
+        "model_b_default": np.clip(signal, 0.0, 1.0),
+        "model_c_default": np.clip(signal - 0.05, 0.0, 1.0),
+    }
+    specs = [
+        ModelSpec(DUMMY_MODEL, DUMMY_MODEL, "A", "default", None, None, "DummyClassifier"),
+        ModelSpec("model_a_tuned", "logreg", "A", "tuned", None, None, "модель A tuned"),
+        ModelSpec("model_b_default", "logreg", "A", "default", None, None, "модель B default"),
+        ModelSpec("model_c_default", "xgb", "A", "default", None, None, "модель C default"),
+    ]
+    thresholds = {spec.key: {"threshold": 0.40} for spec in specs if spec.uses_threshold}
+    oof_proba = {key: np.clip(proba - 0.02, 0.0, 1.0) for key, proba in test_proba.items()}
+    y_oof = y_test.to_numpy()
+    oof_seconds = {spec.key: [0.10, 0.12, 0.11] for spec in specs}
+    fit_seconds = {spec.key: 0.5 + index for index, spec in enumerate(specs)}
+    infer_seconds = {spec.key: 0.001 * (index + 1) for index, spec in enumerate(specs)}
+    rates = [0.1, 0.3, 0.4]
+    clv = business.customer_lifetime_value
+    cost = business.retention_offer_cost
+    rate = business.retention_success_rate
+
+    table = benchmark_table(
+        specs, y_test, test_proba, thresholds, oof_seconds, fit_seconds, infer_seconds, 1200, business
+    )
+    sensitivity = build_sensitivity_table(specs, y_oof, oof_proba, y_test, test_proba, business, rates)
+    by_key = table.set_index("key")
+    expected_profit = profit_at_threshold(y_test, test_proba["model_a_tuned"], 0.40, clv, cost, rate)
+    expected_contact_all = float(y_test.sum()) * clv * rate - len(y_test) * cost
+    threshold_oof, oof_profit = select_threshold(y_oof, oof_proba["model_a_tuned"], clv, cost, 0.3)
+    row = sensitivity[(sensitivity["key"] == "model_a_tuned") & (sensitivity["success_rate"] == 0.3)].iloc[0]
+
+    print(
+        f"таблица: строк = {len(table)}, колонок = {table.shape[1]}, доля оттока = {y_test.mean():.4f}; "
+        f"чувствительность: строк = {len(sensitivity)}"
+    )
+    print(
+        f"прибыль model_a_tuned = {expected_profit:,.0f}, эталон «контактировать всех» = "
+        f"{expected_contact_all:,.0f}, порог по OOF = {threshold_oof:.2f}"
+    )
+
+    assert tuple(table.columns) == TABLE_COLUMNS
+    assert len(table) == len(specs) + 2
+    assert float(by_key.loc["model_a_tuned", "profit_at_threshold"]) == pytest.approx(round(expected_profit, 2))
+    assert float(by_key.loc["reference_contact_none", "profit_at_threshold"]) == 0.0
+    assert float(by_key.loc["reference_contact_all", "profit_at_threshold"]) == pytest.approx(
+        round(expected_contact_all, 2)
+    )
+    assert int(by_key.loc["reference_contact_all", "contacts_at_threshold"]) == len(y_test)
+    assert pd.isna(by_key.loc[DUMMY_MODEL, "threshold"]) and pd.isna(by_key.loc[DUMMY_MODEL, "profit_at_threshold"])
+
+    expected_keys = {spec.key for spec in specs if spec.uses_threshold}
+    assert set(sensitivity["key"]) == expected_keys | {"reference_contact_none", "reference_contact_all"}
+    assert len(sensitivity) == len(expected_keys) * len(rates) + 2 * len(rates)
+    assert float(row["threshold_oof"]) == pytest.approx(threshold_oof)
+    assert float(row["oof_profit"]) == pytest.approx(round(oof_profit, 2))
+    assert int(row["n_contacts"]) == int((test_proba["model_a_tuned"] >= threshold_oof).sum())
+
+    test_frame = predictions_frame(y_test, test_proba)
+    tables_dir = tmp_path / "tables"
+    figures_dir = tmp_path / "figures"
+    artifact_paths = save_test_artifacts(table, test_frame, sensitivity, tables_dir)
+    figure_paths = make_figures(
+        [spec for spec in specs if spec.uses_threshold],
+        oof_proba,
+        test_proba,
+        y_oof,
+        y_test.to_numpy(),
+        business,
+        figures_dir,
+    )
+    print_benchmark_report(table, sensitivity, {}, specs)
+
+    assert [path.name for path in artifact_paths] == [
+        "test_benchmark.csv",
+        "test_predictions.parquet",
+        "business_sensitivity.csv",
+    ]
+    assert [path.name for path in figure_paths] == [
+        "test_calibration.png",
+        "test_profit_curves.png",
+        "test_pr_curves.png",
+    ]
+    for path in (*artifact_paths, *figure_paths):
+        assert path.exists() and path.stat().st_size > 0
+    print(f"артефакты в tmp_path: {[path.name for path in (*artifact_paths, *figure_paths)]}")
+
+    restored_table = pd.read_csv(tables_dir / "test_benchmark.csv")
+    restored_predictions = pd.read_parquet(tables_dir / "test_predictions.parquet")
+    restored_sensitivity = pd.read_csv(tables_dir / "business_sensitivity.csv")
+    assert tuple(restored_table.columns) == TABLE_COLUMNS
+    assert len(restored_table) == len(table)
+    assert list(restored_predictions.columns) == list(test_frame.columns)
+    assert np.allclose(restored_predictions["y_true"].to_numpy(), y_test.to_numpy())
+    assert np.allclose(restored_predictions[f"p_{DUMMY_MODEL}"].to_numpy(), test_proba[DUMMY_MODEL])
+    assert len(restored_sensitivity) == len(sensitivity)

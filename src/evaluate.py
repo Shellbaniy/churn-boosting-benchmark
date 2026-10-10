@@ -523,6 +523,105 @@ def reference_sensitivity_rows(
     return rows
 
 
+def benchmark_table(
+    specs: list[ModelSpec],
+    y_test: pd.Series,
+    test_proba: dict[str, np.ndarray],
+    thresholds: dict[str, dict[str, Any]],
+    oof_seconds: dict[str, list[float]],
+    fit_seconds: dict[str, float],
+    infer_seconds: dict[str, float],
+    n_train: int,
+    business: BusinessConfig,
+) -> pd.DataFrame:
+    """Таблица метрик на тесте: модели плюс эталонные стратегии, колонки строго TABLE_COLUMNS."""
+    rows: list[dict[str, Any]] = [
+        metrics_row(
+            spec,
+            y_test,
+            test_proba[spec.key],
+            thresholds.get(spec.key, {}).get("threshold"),
+            n_train,
+            business,
+            fit_seconds[spec.key],
+            infer_seconds[spec.key],
+            oof_seconds[spec.key],
+        )
+        for spec in specs
+    ]
+    rows.extend(reference_rows(y_test, business))
+    return pd.DataFrame([{column: row.get(column) for column in TABLE_COLUMNS} for row in rows])
+
+
+def predictions_frame(y_test: pd.Series, test_proba: dict[str, np.ndarray]) -> pd.DataFrame:
+    """Кадр test_predictions.parquet: фактические метки теста и вероятности всех моделей.
+
+    Имя без префикса ``test_``: после импорта в тест-модуль pytest иначе собирал бы её как тест.
+    """
+    frame = pd.DataFrame({"y_true": y_test.to_numpy()})
+    for key, proba in test_proba.items():
+        frame[f"p_{key}"] = proba
+    return frame
+
+
+def build_sensitivity_table(
+    specs: list[ModelSpec],
+    y_oof: np.ndarray,
+    oof_proba: dict[str, np.ndarray],
+    y_test: pd.Series,
+    test_proba: dict[str, np.ndarray],
+    business: BusinessConfig,
+    rates: list[float],
+) -> pd.DataFrame:
+    """Чувствительность прибыли: для каждого success_rate порог заново подбирается по OOF train."""
+    rows: list[dict[str, Any]] = []
+    for spec in specs:
+        if not spec.uses_threshold:
+            continue
+        rows.extend(
+            sensitivity_rows(spec, y_oof, oof_proba[spec.key], y_test, test_proba[spec.key], business, rates)
+        )
+    rows.extend(reference_sensitivity_rows(y_test, business, rates))
+    return pd.DataFrame(rows)
+
+
+def save_test_artifacts(
+    table: pd.DataFrame,
+    test_frame: pd.DataFrame,
+    sensitivity_table: pd.DataFrame,
+    tables_dir: Path,
+) -> tuple[Path, Path, Path]:
+    """Сохраняет test_benchmark.csv, test_predictions.parquet и business_sensitivity.csv."""
+    ensure_dir(tables_dir)
+    benchmark_path = tables_dir / "test_benchmark.csv"
+    table.to_csv(benchmark_path, index=False)
+    test_path = tables_dir / "test_predictions.parquet"
+    test_frame.to_parquet(test_path, index=False)
+    sensitivity_path = tables_dir / "business_sensitivity.csv"
+    sensitivity_table.to_csv(sensitivity_path, index=False)
+    return benchmark_path, test_path, sensitivity_path
+
+
+def make_figures(
+    specs: list[ModelSpec],
+    oof_proba: dict[str, np.ndarray],
+    test_proba: dict[str, np.ndarray],
+    y_oof: np.ndarray,
+    y_test: np.ndarray,
+    business: BusinessConfig,
+    figures_dir: Path,
+) -> list[Path]:
+    """Три фигуры этапа: калибровка на тесте, прибыль от порога (OOF и тест), PR-кривые."""
+    ensure_dir(figures_dir)
+    return [
+        plot_calibration(specs, test_proba, y_test, figures_dir / "test_calibration.png"),
+        plot_profit_curves(
+            specs, oof_proba, test_proba, y_oof, y_test, business, figures_dir / "test_profit_curves.png"
+        ),
+        plot_pr_curves(specs, test_proba, y_test, figures_dir / "test_pr_curves.png"),
+    ]
+
+
 def display_specs(specs: list[ModelSpec]) -> list[ModelSpec]:
     """Модели для фигур: tuned-конфигурации плюс logreg default как ориентир.
 
@@ -612,6 +711,72 @@ DEFAULT_SENSITIVITY: tuple[float, ...] = (0.1, 0.2, 0.3, 0.4, 0.5)
 INT_COLUMNS = frozenset(
     {"n_train", "n_test", "contacts_at_threshold", "contacts_at_0.5", "n_contacts"}
 )
+# Текстовые колонки печатаются как есть: без этого format_table пытается привести их к float.
+TEXT_COLUMNS = frozenset({"key", "label", "model", "variant", "kind", "threshold_source"})
+# Колонки test_benchmark.csv и вид таблиц для печати. Список задан явно, чтобы одна опечатка
+# в имени метрики не «теряла» колонку молча.
+TABLE_COLUMNS: tuple[str, ...] = (
+    "key",
+    "label",
+    "model",
+    "variant",
+    "kind",
+    "n_train",
+    "n_test",
+    "test_churn_rate",
+    "roc_auc",
+    "pr_auc",
+    "brier",
+    "log_loss",
+    "threshold",
+    "threshold_source",
+    "profit_at_threshold",
+    "profit_per_customer_at_threshold",
+    "contacts_at_threshold",
+    "contact_rate_at_threshold",
+    "f1_at_threshold",
+    "recall_at_threshold",
+    "precision_at_threshold",
+    "f1_at_0.5",
+    "recall_at_0.5",
+    "precision_at_0.5",
+    "contacts_at_0.5",
+    "lift_at_10pct",
+    "recall_at_10pct",
+    "oof_fit_sec_mean",
+    "fit_sec_full_train",
+    "infer_sec_test",
+)
+QUALITY_VIEW: tuple[str, ...] = (
+    "key",
+    "label",
+    "kind",
+    "roc_auc",
+    "pr_auc",
+    "brier",
+    "log_loss",
+    "threshold",
+    "f1_at_threshold",
+    "recall_at_threshold",
+    "precision_at_threshold",
+    "f1_at_0.5",
+    "recall_at_0.5",
+    "precision_at_0.5",
+)
+BUSINESS_VIEW: tuple[str, ...] = (
+    "key",
+    "label",
+    "kind",
+    "threshold",
+    "profit_at_threshold",
+    "profit_per_customer_at_threshold",
+    "contacts_at_threshold",
+    "contact_rate_at_threshold",
+    "recall_at_threshold",
+    "precision_at_threshold",
+    "lift_at_10pct",
+    "recall_at_10pct",
+)
 
 
 def format_table(frame: pd.DataFrame, columns: tuple[str, ...]) -> pd.DataFrame:
@@ -619,6 +784,8 @@ def format_table(frame: pd.DataFrame, columns: tuple[str, ...]) -> pd.DataFrame:
     def fmt_one(value: Any, column: str) -> str:
         if value is None or (isinstance(value, float) and np.isnan(value)):
             return "-"
+        if column in TEXT_COLUMNS:
+            return str(value)
         if column in INT_COLUMNS:
             return f"{int(value)}"
         if column == "profit_at_threshold":
@@ -814,67 +981,45 @@ def run_benchmark(cfg: Config | None = None) -> pd.DataFrame:
         f"доля оттока = {y_test.mean():.4f}, клиентов с оттоком = {int(y_test.sum())}"
     )
 
-    rows: list[dict[str, Any]] = []
     test_proba: dict[str, np.ndarray] = {}
-    test_frame = pd.DataFrame({"y_true": y_test.to_numpy()})
+    fit_seconds: dict[str, float] = {}
+    infer_seconds: dict[str, float] = {}
     for spec in specs:
         pipeline, fit_sec = fit_on_train(spec, X, y, cfg)
         proba, infer_sec = predict_proba_test(pipeline, X_test)
         test_proba[spec.key] = proba
-        test_frame[f"p_{spec.key}"] = proba
-        threshold = thresholds.get(spec.key, {}).get("threshold")
-        rows.append(
-            metrics_row(
-                spec, y_test, proba, threshold, len(X), business, fit_sec, infer_sec, oof_seconds[spec.key]
-            )
-        )
+        fit_seconds[spec.key] = fit_sec
+        infer_seconds[spec.key] = infer_sec
         print(
-            f"  {spec.key:<18} ROC-AUC = {rows[-1]['roc_auc']:.4f}, обучение на train = {fit_sec:.1f} с, "
+            f"  {spec.key:<18} ROC-AUC = {roc_auc_score(y_test, proba):.4f}, обучение на train = {fit_sec:.1f} с, "
             f"инференс = {infer_sec:.4f} с"
         )
 
-    table = pd.DataFrame(
-        [
-            {column: row.get(column) for column in TABLE_COLUMNS}
-            for row in rows + reference_rows(y_test, business)
-        ]
+    test_frame = predictions_frame(y_test, test_proba)
+    table = benchmark_table(
+        specs,
+        y_test,
+        test_proba,
+        thresholds,
+        oof_seconds,
+        fit_seconds,
+        infer_seconds,
+        len(X),
+        business,
     )
-    benchmark_path = cfg.tables_dir / "test_benchmark.csv"
-    table.to_csv(benchmark_path, index=False)
-    test_path = cfg.tables_dir / "test_predictions.parquet"
-    test_frame.to_parquet(test_path, index=False)
 
     print()
     print("Шаг 4. Чувствительность к success_rate (порог каждый раз пересчитывается по OOF):")
-    sensitivity: list[dict[str, Any]] = []
-    for spec in specs:
-        if not spec.uses_threshold:
-            continue
-        sensitivity.extend(
-            sensitivity_rows(
-                spec, y_oof, oof_proba[spec.key], y_test, test_proba[spec.key], business, rates
-            )
-        )
-    sensitivity.extend(reference_sensitivity_rows(y_test, business, rates))
-    sensitivity_table = pd.DataFrame(sensitivity)
-    sensitivity_path = cfg.tables_dir / "business_sensitivity.csv"
-    sensitivity_table.to_csv(sensitivity_path, index=False)
+    sensitivity_table = build_sensitivity_table(specs, y_oof, oof_proba, y_test, test_proba, business, rates)
+    benchmark_path, test_path, sensitivity_path = save_test_artifacts(
+        table, test_frame, sensitivity_table, cfg.tables_dir
+    )
     print(f"  success_rate = {rates}")
     print(f"  строк в таблице чувствительности = {len(sensitivity_table)} -> {sensitivity_path}")
 
-    figures = [
-        plot_calibration(tuned, test_proba, y_test.to_numpy(), cfg.figures_dir / "test_calibration.png"),
-        plot_profit_curves(
-            tuned,
-            oof_proba,
-            test_proba,
-            y_oof,
-            y_test.to_numpy(),
-            business,
-            cfg.figures_dir / "test_profit_curves.png",
-        ),
-        plot_pr_curves(tuned, test_proba, y_test.to_numpy(), cfg.figures_dir / "test_pr_curves.png"),
-    ]
+    figures = make_figures(
+        tuned, oof_proba, test_proba, y_oof, y_test.to_numpy(), business, cfg.figures_dir
+    )
 
     print_benchmark_report(table, sensitivity_table, payload, specs)
 

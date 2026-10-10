@@ -1,0 +1,184 @@
+{
+  "source": "out-of-fold предсказания train: StratifiedKFold(n_splits=5, shuffle=True, random_state=42); тест не использовался",
+  "rule": "максимум прибыли profit_i = y_i * CLV * success_rate - offer_cost по фактическим меткам",
+  "grid": {
+    "low": 0.01,
+    "high": 0.99,
+    "step": 0.01
+  },
+  "business": {
+    "customer_lifetime_value": 500.0,
+    "retention_offer_cost": 50.0,
+    "retention_success_rate": 0.3
+  },
+  "thresholds": {
+    "logreg_default": {
+      "label": "LogisticRegression default",
+      "model": "logreg",
+      "variant": "A",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.33,
+      "oof_profit": 67100.0,
+      "oof_profit_per_customer": 11.9098,
+      "n_contacted": 1976,
+      "contact_rate": 0.3507
+    },
+    "logreg_tuned": {
+      "label": "LogisticRegression tuned (logreg_A)",
+      "model": "logreg",
+      "variant": "A",
+      "kind": "tuned",
+      "best_key": "logreg_A",
+      "threshold": 0.32,
+      "oof_profit": 67200.0,
+      "oof_profit_per_customer": 11.9276,
+      "n_contacted": 2031,
+      "contact_rate": 0.3605
+    },
+    "xgb_A_default": {
+      "label": "XGBoost A default",
+      "model": "xgb",
+      "variant": "A",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.35,
+      "oof_profit": 61000.0,
+      "oof_profit_per_customer": 10.8271,
+      "n_contacted": 1735,
+      "contact_rate": 0.308
+    },
+    "xgb_A_tuned": {
+      "label": "XGBoost A tuned (xgb_A_wide)",
+      "model": "xgb",
+      "variant": "A",
+      "kind": "tuned",
+      "best_key": "xgb_A_wide",
+      "threshold": 0.36,
+      "oof_profit": 68200.0,
+      "oof_profit_per_customer": 12.1051,
+      "n_contacted": 1831,
+      "contact_rate": 0.325
+    },
+    "xgb_B_default": {
+      "label": "XGBoost B default",
+      "model": "xgb",
+      "variant": "B",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.28,
+      "oof_profit": 60100.0,
+      "oof_profit_per_customer": 10.6674,
+      "n_contacted": 1960,
+      "contact_rate": 0.3479
+    },
+    "xgb_B_tuned": {
+      "label": "XGBoost B tuned (xgb_B_wide)",
+      "model": "xgb",
+      "variant": "B",
+      "kind": "tuned",
+      "best_key": "xgb_B_wide",
+      "threshold": 0.35,
+      "oof_profit": 68850.0,
+      "oof_profit_per_customer": 12.2204,
+      "n_contacted": 1857,
+      "contact_rate": 0.3296
+    },
+    "lgbm_A_default": {
+      "label": "LightGBM A default",
+      "model": "lgbm",
+      "variant": "A",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.36,
+      "oof_profit": 64250.0,
+      "oof_profit_per_customer": 11.404,
+      "n_contacted": 1751,
+      "contact_rate": 0.3108
+    },
+    "lgbm_A_tuned": {
+      "label": "LightGBM A tuned (lgbm_A_wide)",
+      "model": "lgbm",
+      "variant": "A",
+      "kind": "tuned",
+      "best_key": "lgbm_A_wide",
+      "threshold": 0.37,
+      "oof_profit": 68050.0,
+      "oof_profit_per_customer": 12.0785,
+      "n_contacted": 1756,
+      "contact_rate": 0.3117
+    },
+    "lgbm_B_default": {
+      "label": "LightGBM B default",
+      "model": "lgbm",
+      "variant": "B",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.27,
+      "oof_profit": 65000.0,
+      "oof_profit_per_customer": 11.5371,
+      "n_contacted": 2141,
+      "contact_rate": 0.38
+    },
+    "lgbm_B_tuned": {
+      "label": "LightGBM B tuned (lgbm_B_wide)",
+      "model": "lgbm",
+      "variant": "B",
+      "kind": "tuned",
+      "best_key": "lgbm_B_wide",
+      "threshold": 0.32,
+      "oof_profit": 67050.0,
+      "oof_profit_per_customer": 11.901,
+      "n_contacted": 1998,
+      "contact_rate": 0.3546
+    },
+    "catboost_A_default": {
+      "label": "CatBoost A default",
+      "model": "catboost",
+      "variant": "A",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.33,
+      "oof_profit": 66300.0,
+      "oof_profit_per_customer": 11.7678,
+      "n_contacted": 1881,
+      "contact_rate": 0.3339
+    },
+    "catboost_A_tuned": {
+      "label": "CatBoost A tuned (catboost_A_wide)",
+      "model": "catboost",
+      "variant": "A",
+      "kind": "tuned",
+      "best_key": "catboost_A_wide",
+      "threshold": 0.36,
+      "oof_profit": 68950.0,
+      "oof_profit_per_customer": 12.2382,
+      "n_contacted": 1783,
+      "contact_rate": 0.3165
+    },
+    "catboost_B_default": {
+      "label": "CatBoost B default",
+      "model": "catboost",
+      "variant": "B",
+      "kind": "default",
+      "best_key": null,
+      "threshold": 0.31,
+      "oof_profit": 66750.0,
+      "oof_profit_per_customer": 11.8477,
+      "n_contacted": 2016,
+      "contact_rate": 0.3578
+    },
+    "catboost_B_tuned": {
+      "label": "CatBoost B tuned (catboost_B_wide)",
+      "model": "catboost",
+      "variant": "B",
+      "kind": "tuned",
+      "best_key": "catboost_B_wide",
+      "threshold": 0.33,
+      "oof_profit": 68600.0,
+      "oof_profit_per_customer": 12.1761,
+      "n_contacted": 1946,
+      "contact_rate": 0.3454
+    }
+  }
+}
