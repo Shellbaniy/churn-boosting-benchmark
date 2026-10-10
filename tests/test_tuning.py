@@ -11,7 +11,8 @@ import optuna
 from optuna.trial import TrialState
 
 from src.pipelines import make_folds
-from src.tune import inner_split, make_objective, run_study
+from src.tune import inner_split, make_objective, normalize_tag, parse_args, run_study
+from src.utils import read_json
 
 # Мало деревьев и короткое терпение: тесты должны идти секунды, а не минуты.
 TINY_SPACE = {"n_estimators": {"type": "int", "low": 10, "high": 20}}
@@ -87,3 +88,99 @@ def test_same_seed_gives_same_trial_value(small_train, cfg, tmp_path) -> None:
     assert first.best_value == second.best_value
     assert first.best_params == second.best_params
     assert first.fold_scores == second.fold_scores
+
+
+def test_smoke_writes_to_separate_file(small_train, cfg, tmp_path) -> None:
+    """Smoke пишет best_params_smoke.json и не попадает в best_params.json полного прогона."""
+    X, y = _tiny_data(small_train, cfg)
+    tables_dir = tmp_path / "tables"
+    run_cfg = replace(cfg, tables_dir=tables_dir, figures_dir=tmp_path / "figures")
+    shared = {
+        "cfg": run_cfg,
+        "n_trials": 1,
+        "space": TINY_SPACE,
+        "data": (X, y),
+        "folds": make_folds(X, y, replace(cfg, cv_splits=2)),
+        "es_rounds": TINY_ES_ROUNDS,
+        "n_jobs": 1,
+        "log_mlflow": False,
+        "verbose": False,
+    }
+
+    run_study("xgb", "A", smoke=True, storage=f"sqlite:///{(tmp_path / 'smoke.db').as_posix()}", **shared)
+    smoke_payload = read_json(tables_dir / "best_params_smoke.json")
+    full_path = tables_dir / "best_params.json"
+    print(
+        f"smoke: ключи в best_params_smoke.json = {sorted(smoke_payload)}, "
+        f"best_params.json существует = {full_path.exists()}"
+    )
+    assert sorted(smoke_payload) == ["xgb_A_smoke"]
+    assert not full_path.exists()
+
+    run_study("xgb", "A", smoke=False, storage=f"sqlite:///{(tmp_path / 'full.db').as_posix()}", **shared)
+    smoke_payload = read_json(tables_dir / "best_params_smoke.json")
+    full_payload = read_json(full_path)
+    print(
+        f"полный прогон: ключи в best_params.json = {sorted(full_payload)}, "
+        f"ключи в best_params_smoke.json = {sorted(smoke_payload)}"
+    )
+    assert sorted(full_payload) == ["xgb_A"]
+    assert sorted(smoke_payload) == ["xgb_A_smoke"]
+
+
+def test_tag_isolates_new_search(small_train, cfg, tmp_path) -> None:
+    """Тег даёт суффикс имени study и ключа, поэтому новая сетка не смешивается с прежним поиском."""
+    X, y = _tiny_data(small_train, cfg)
+    tables_dir = tmp_path / "tables"
+    run_cfg = replace(cfg, tables_dir=tables_dir, figures_dir=tmp_path / "figures")
+    shared = {
+        "cfg": run_cfg,
+        "n_trials": 1,
+        "space": TINY_SPACE,
+        "data": (X, y),
+        "folds": make_folds(X, y, replace(cfg, cv_splits=2)),
+        "es_rounds": TINY_ES_ROUNDS,
+        "n_jobs": 1,
+        "log_mlflow": False,
+        "verbose": False,
+    }
+
+    tagged = run_study("xgb", "A", tag="wide", storage=f"sqlite:///{(tmp_path / 'tagged.db').as_posix()}", **shared)
+    tagged_smoke = run_study(
+        "xgb",
+        "A",
+        smoke=True,
+        tag="wide",
+        storage=f"sqlite:///{(tmp_path / 'tagged_smoke.db').as_posix()}",
+        **shared,
+    )
+    full_payload = read_json(tables_dir / "best_params.json")
+    smoke_payload = read_json(tables_dir / "best_params_smoke.json")
+
+    print(f"study = {tagged.study_name}, ключи в best_params.json = {sorted(full_payload)}")
+    print(f"study = {tagged_smoke.study_name}, ключи в best_params_smoke.json = {sorted(smoke_payload)}")
+    assert tagged.study_name == "xgb_A_wide"
+    assert tagged_smoke.study_name == "xgb_A_smoke_wide"
+    assert sorted(full_payload) == ["xgb_A_wide"]
+    assert sorted(smoke_payload) == ["xgb_A_smoke_wide"]
+    assert (tmp_path / "figures" / "optuna_history_xgb_A_wide.png").exists()
+
+    try:
+        normalize_tag("плохой тег")
+    except SystemExit as error:
+        print(f"недопустимый тег отклонён: {error}")
+    else:
+        raise AssertionError("тег с пробелом и кириллицей должен отклоняться")
+
+
+def test_parse_args_reads_tag() -> None:
+    """CLI: без --tag суффикса нет, явный тег нормализуется (регистр и разделитель)."""
+    plain = parse_args([])
+    tagged = parse_args(["--model", "xgb", "--variant", "A", "--trials", "100", "--tag", "Wide"])
+    print(f"без тега: tag = {plain.tag!r}, суффикс = {normalize_tag(plain.tag)!r}")
+    print(f"с тегом: tag = {tagged.tag!r}, суффикс = {normalize_tag(tagged.tag)!r}, trials = {tagged.trials}")
+
+    assert plain.tag == ""
+    assert normalize_tag(plain.tag) == ""
+    assert normalize_tag(tagged.tag) == "_wide"
+    assert tagged.trials == 100

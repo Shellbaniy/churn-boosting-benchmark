@@ -30,7 +30,7 @@ echo   smoke       - train default models on shared 5-fold CV (train only)
 echo   baseline    - run baseline models with CV
 echo   tune-smoke  - Optuna smoke run (5 trials per model)
 echo   tune        - full Optuna run (100 trials per model)
-echo   tune-one    - one study: make.bat tune-one xgb A 100
+echo   tune-one    - one study: make.bat tune-one xgb A 100 [tag]
 echo   benchmark   - final benchmark on holdout test
 echo   stats       - statistical significance tests
 echo   explain     - SHAP explanations
@@ -75,7 +75,9 @@ type reports\logs\tune_full.log
 goto end
 
 :one
-%PY% -u -m src.tune --model %~2 --variant %~3 --trials %~4
+set TAGARG=
+if not "%~5"=="" set TAGARG=--tag %~5
+%PY% -u -m src.tune --model %~2 --variant %~3 --trials %~4 %TAGARG%
 goto end
 
 :benchmark

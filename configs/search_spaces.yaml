@@ -16,11 +16,11 @@ xgb:
     log: true
   max_depth:
     type: int
-    low: 2
-    high: 10
+    low: 1
+    high: 6
   min_child_weight:
     type: float
-    low: 0.1
+    low: 0.01
     high: 20.0
     log: true
   subsample:
@@ -55,13 +55,13 @@ lgbm:
     step: 100
   learning_rate:
     type: float
-    low: 0.01
+    low: 0.003
     high: 0.3
     log: true
   num_leaves:
     type: int
-    low: 8
-    high: 128
+    low: 2
+    high: 64
   min_child_samples:
     type: int
     low: 5
@@ -77,12 +77,12 @@ lgbm:
   reg_alpha:
     type: float
     low: 1.0e-8
-    high: 10.0
+    high: 100.0
     log: true
   reg_lambda:
     type: float
     low: 1.0e-8
-    high: 10.0
+    high: 100.0
     log: true
 
 # iterations до 1000: обучение останавливается early stopping по inner-val.
@@ -94,27 +94,27 @@ catboost:
     step: 100
   learning_rate:
     type: float
-    low: 0.03
+    low: 0.01
     high: 0.3
     log: true
   depth:
     type: int
-    low: 4
+    low: 2
     high: 8
   l2_leaf_reg:
     type: float
     low: 1.0
-    high: 30.0
+    high: 100.0
     log: true
   random_strength:
     type: float
     low: 1.0e-3
-    high: 10.0
+    high: 30.0
     log: true
   bagging_temperature:
     type: float
     low: 0.0
-    high: 2.0
+    high: 5.0
 
 # Небольшой поиск для честного сравнения с бустингами (по умолчанию 20 trials).
 logreg:

@@ -13,12 +13,15 @@
 
 Запуск по отдельности: python -m src.tune --model xgb --variant A --trials 100
 Все studies по очереди: python -m src.tune (make tune / make tune-smoke).
+Тег отделяет новую сетку от прежней: python -m src.tune --tag wide даёт study xgb_A_wide
+и ключ xgb_A_wide в best_params.json, старые (без тега) результаты остаются на месте.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import time
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -59,6 +62,7 @@ os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
 SPACE_FILE = CONFIG_DIR / "search_spaces.yaml"
 VARIANT_B_SECTION = "variant_b"
 SMOKE_SUFFIX = "_smoke"
+TAG_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 # LogisticRegression: чтобы trial не зависел от сходимости солвера, итерации фиксируем.
 FIXED_LOGREG_PARAMS: dict[str, Any] = {"max_iter": 5000}
 WARN_TOTAL_SEC = 3 * 3600
@@ -78,6 +82,16 @@ TRIAL_STATE_LABELS = {
     TrialState.PRUNED: "pruned",
     TrialState.FAIL: "ошибка",
 }
+def normalize_tag(tag: str | None) -> str:
+    """Тег -> суффикс имени study: --tag wide даёт xgb_A_wide, пустой тег — пустую строку."""
+    value = (tag or "").strip().lower()
+    if not value:
+        return ""
+    if not TAG_PATTERN.match(value):
+        raise SystemExit(f"Тег {value!r} содержит недопустимые символы: разрешены буквы, цифры, _ и -.")
+    return f"_{value}"
+
+
 def sqlite_uri(path: Path) -> str:
     """URI SQLite-файла для Optuna и MLflow (posix-путь важен на Windows)."""
     return f"sqlite:///{path.as_posix()}"
@@ -361,9 +375,16 @@ class StudyResult:
         }
 
 
-def save_figures(study: optuna.Study, model_name: str, variant: str, smoke: bool, figures_dir: Path) -> list[Path]:
+def save_figures(
+    study: optuna.Study,
+    model_name: str,
+    variant: str,
+    smoke: bool,
+    figures_dir: Path,
+    tag_suffix: str = "",
+) -> list[Path]:
     """История оптимизации и важность параметров в reports/figures/optuna_*.png."""
-    suffix = SMOKE_SUFFIX if smoke else ""
+    suffix = (SMOKE_SUFFIX if smoke else "") + tag_suffix
     paths: list[Path] = []
     history_path = figures_dir / f"optuna_history_{model_name}_{variant}{suffix}.png"
     axes = optuna.visualization.matplotlib.plot_optimization_history(study)
@@ -463,6 +484,7 @@ def run_study(
     cfg: Config | None = None,
     n_trials: int | None = None,
     smoke: bool = False,
+    tag: str = "",
     space: dict[str, Any] | None = None,
     data: tuple[pd.DataFrame, pd.Series] | None = None,
     folds: list[tuple[np.ndarray, np.ndarray]] | None = None,
@@ -477,6 +499,8 @@ def run_study(
 
     Параметры data/folds/storage/es_rounds/n_jobs нужны тестам: они позволяют прогнать
     тот же протокол на мини-выборке, не записывая ничего в reports/.
+    tag добавляет суффикс к имени study, имени trials.csv, картинкам и ключу в best_params.json,
+    поэтому новая сетка не смешивается с прежними результатами.
     """
     configure_utf8_output()
     cfg = cfg or load_config()
@@ -494,7 +518,10 @@ def run_study(
     es_rounds = int(es_rounds if es_rounds is not None else cfg.es_rounds)
     tune_jobs = int(n_jobs if n_jobs is not None else cfg.tune_n_jobs)
     fit_cfg = replace(cfg, n_jobs=tune_jobs)
-    study_name = f"{model_name}_{variant}{SMOKE_SUFFIX if smoke else ''}"
+    tag_suffix = normalize_tag(tag)
+    study_name = f"{model_name}_{variant}{SMOKE_SUFFIX if smoke else ''}{tag_suffix}"
+    # Smoke-прогон не должен перетирать итоговые best_params полного прогона.
+    best_params_file = f"best_params{SMOKE_SUFFIX if smoke else ''}.json"
 
     if data is None:
         train_frame = load_split(cfg)[0]
@@ -526,6 +553,11 @@ def run_study(
             f"early stopping patience = {es_rounds}"
         )
         print(f"бюджет: {budget} trials, TPE(seed={cfg.seed}) + MedianPruner, storage = {storage_url}")
+        if tag_suffix:
+            print(
+                f"тег {tag_suffix.lstrip('_')}: ключ {study_name} в {best_params_file}, "
+                f"trials и картинки тоже с суффиксом {tag_suffix}; прежние результаты не перетираются."
+            )
 
     study = optuna.create_study(
         study_name=study_name,
@@ -558,6 +590,7 @@ def run_study(
                 "variant": variant,
                 "study_name": study_name,
                 "smoke": smoke,
+                "tag": tag_suffix.lstrip("_") or "none",
                 "seed": cfg.seed,
                 "n_trials_budget": budget,
                 "n_folds": len(folds),
@@ -624,11 +657,11 @@ def run_study(
         ensure_dir(cfg.figures_dir)
         trials_path = cfg.tables_dir / f"optuna_trials_{study_name}.csv"
         trials_frame(study).to_csv(trials_path, index=False)
-        best_path = cfg.tables_dir / "best_params.json"
+        best_path = cfg.tables_dir / best_params_file
         payload = read_json(best_path) if best_path.exists() else {}
         payload[study_name] = summary
         write_json(best_path, payload)
-        figure_paths = save_figures(study, model_name, variant, smoke, cfg.figures_dir)
+        figure_paths = save_figures(study, model_name, variant, smoke, cfg.figures_dir, tag_suffix)
         if verbose:
             print(f"сохранено: {trials_path}")
             for path in [best_path, *figure_paths]:
@@ -648,11 +681,17 @@ def studies_for(model_name: str | None, variant: str | None) -> list[tuple[str, 
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    configure_utf8_output()  # --help и сообщения об ошибках печатают кириллицу до старта study
     parser = argparse.ArgumentParser(description="Optuna-тюнинг на train (тест не используется).")
     parser.add_argument("--model", choices=list(MODEL_NAMES), help="модель; без флага запускаются все studies")
     parser.add_argument("--variant", choices=[VARIANT_A, VARIANT_B], help="вариант пайплайна; по умолчанию оба")
     parser.add_argument("--trials", type=int, default=None, help="бюджет trials на study (по умолчанию из config.yaml)")
     parser.add_argument("--smoke", action="store_true", help="быстрый прогон: 5 trials и суффикс _smoke в именах studies")
+    parser.add_argument(
+        "--tag",
+        default="",
+        help="суффикс имени study и ключа в best_params.json (например --tag wide); по умолчанию пусто",
+    )
     return parser.parse_args(argv)
 
 
@@ -662,6 +701,12 @@ def main(argv: list[str] | None = None) -> list[StudyResult]:
     cfg = load_config()
     if args.smoke:
         print(f"Режим smoke: {cfg.smoke_trials} trials на study, имена studies с суффиксом {SMOKE_SUFFIX}.")
+    tag_suffix = normalize_tag(args.tag)
+    if tag_suffix:
+        print(
+            f"Тег {tag_suffix.lstrip('_')}: studies, trials.csv, картинки и ключи в best_params.json "
+            f"получат суффикс {tag_suffix}; прежние результаты (без тега) не перетираются."
+        )
     train_frame = load_split(cfg)[0]
     data = (train_frame.drop(columns=[cfg.target]), train_frame[cfg.target])
     print(
@@ -670,7 +715,17 @@ def main(argv: list[str] | None = None) -> list[StudyResult]:
     )
     results: list[StudyResult] = []
     for model_name, variant in studies_for(args.model, args.variant):
-        results.append(run_study(model_name, variant, cfg=cfg, n_trials=args.trials, smoke=args.smoke, data=data))
+        results.append(
+            run_study(
+                model_name,
+                variant,
+                cfg=cfg,
+                n_trials=args.trials,
+                smoke=args.smoke,
+                tag=args.tag,
+                data=data,
+            )
+        )
     if len(results) > 1:
         print("\nСводка studies, лучший ROC-AUC (среднее по фолдам):")
         for result in results:

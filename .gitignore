@@ -22,3 +22,6 @@ __pycache__/
 mlruns/
 .env
 .ipynb_checkpoints/
+reports/figures/*_smoke*
+reports/tables/*_smoke*
+data/raw/

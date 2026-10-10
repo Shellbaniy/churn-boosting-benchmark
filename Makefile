@@ -2,6 +2,7 @@ PY ?= .venv/Scripts/python.exe
 MODEL ?= xgb
 VARIANT ?= A
 TRIALS ?= 100
+TAG ?=
 
 .PHONY: help setup data eda smoke baseline tune-smoke tune tune-one benchmark stats explain test all clean
 
@@ -14,7 +15,7 @@ help:
 	@echo "  baseline    - run baseline models with CV"
 	@echo "  tune-smoke  - Optuna smoke run (5 trials per model)"
 	@echo "  tune        - full Optuna run (100 trials per model)"
-	@echo "  tune-one    - one study: make tune-one MODEL=xgb VARIANT=A TRIALS=100"
+	@echo "  tune-one    - one study: make tune-one MODEL=xgb VARIANT=A TRIALS=100 [TAG=wide]"
 	@echo "  benchmark   - final benchmark on holdout test"
 	@echo "  stats       - statistical significance tests"
 	@echo "  explain     - SHAP explanations"
@@ -52,7 +53,7 @@ tune:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/tune_full.log', encoding='utf-8').read())"
 
 tune-one:
-	$(PY) -u -m src.tune --model $(MODEL) --variant $(VARIANT) --trials $(TRIALS)
+	$(PY) -u -m src.tune --model $(MODEL) --variant $(VARIANT) --trials $(TRIALS) $(if $(TAG),--tag $(TAG))
 
 benchmark:
 	$(PY) -m src.evaluate
