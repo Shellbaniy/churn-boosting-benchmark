@@ -27,7 +27,8 @@ data:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/data.log', encoding='utf-8').read())"
 
 eda:
-	$(PY) -m src.eda
+	$(PY) -m src.eda > reports/logs/eda.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/eda.log', encoding='utf-8').read())"
 
 baseline:
 	$(PY) -m src.baseline

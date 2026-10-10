@@ -46,7 +46,8 @@ type reports\logs\data.log
 goto end
 
 :eda
-%PY% -m src.eda
+%PY% -m src.eda > reports\logs\eda.log 2>&1
+type reports\logs\eda.log
 goto end
 
 :baseline

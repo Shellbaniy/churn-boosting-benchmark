@@ -105,7 +105,7 @@
 - **Риски:** не читать тест нигде, кроме этапа 6; dtype-нюансы pandas 3.
 
 ### Этап 2 — EDA и графики
-- [ ] Готово
+- [x] Готово
 - **Цель:** обязательные графики и выводы.
 - **Файлы:** `src/eda.py`, `notebooks/01_eda.ipynb`; **Выходы:** `reports/figures/eda_*.png`,
   `reports/tables/eda_*.csv`, `reports/logs/eda.log`.

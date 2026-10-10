@@ -1,0 +1,11 @@
+feature,category,n,churn_rate
+Contract,Month-to-month,3102,0.4275
+Contract,One year,1173,0.1108
+Contract,Two year,1359,0.0287
+InternetService,DSL,1937,0.1869
+InternetService,Fiber optic,2483,0.4209
+InternetService,No,1214,0.0725
+PaymentMethod,Bank transfer (automatic),1244,0.1616
+PaymentMethod,Credit card (automatic),1213,0.1492
+PaymentMethod,Electronic check,1891,0.4574
+PaymentMethod,Mailed check,1286,0.1928
