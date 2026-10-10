@@ -19,6 +19,7 @@ from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.compose import ColumnTransformer
+from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import StratifiedKFold
@@ -33,11 +34,15 @@ from src.utils import configure_utf8_output, set_global_seed
 VARIANT_A = "A"
 VARIANT_B = "B"
 MODEL_NAMES: tuple[str, ...] = ("logreg", "xgb", "lgbm", "catboost")
+# Опорная модель baseline: она не входит в MODEL_NAMES, поэтому не участвует в smoke и тюнинге.
+DUMMY_MODEL = "dummy"
+SUPPORTED_MODELS: tuple[str, ...] = MODEL_NAMES + (DUMMY_MODEL,)
 UNKNOWN_TOKEN = "<unknown>"
 
 # Дефолтные параметры моделей менять нельзя (никакого тюнинга), поэтому в фабрике
 # фиксируются только seed, число потоков и режим логирования.
 MODEL_LABELS = {
+    DUMMY_MODEL: "DummyClassifier",
     "logreg": "LogisticRegression",
     "xgb": "XGBoost",
     "lgbm": "LightGBM",
@@ -149,6 +154,8 @@ def build_estimator(
     params: dict[str, Any] | None = None,
 ) -> Any:
     overrides = dict(params or {})
+    if model_name == DUMMY_MODEL:
+        return DummyClassifier(strategy="prior", random_state=cfg.seed)
     if model_name == "logreg":
         return LogisticRegression(random_state=cfg.seed, **overrides)
     if model_name == "xgb":
@@ -170,12 +177,14 @@ def build_estimator(
             allow_writing_files=False,
             **overrides,
         )
-    raise ValueError(f"Неизвестная модель {model_name!r}, ожидается одна из {MODEL_NAMES}.")
+    raise ValueError(f"Неизвестная модель {model_name!r}, ожидается одна из {SUPPORTED_MODELS}.")
 
 
 def available_variants(model_name: str) -> tuple[str, ...]:
-    """У LogisticRegression нет нативного представления категорий, поэтому только A."""
-    return (VARIANT_A,) if model_name == "logreg" else (VARIANT_A, VARIANT_B)
+    """Нативное представление категорий есть у бустингов, поэтому logreg и dummy только A."""
+    if model_name in {"logreg", DUMMY_MODEL}:
+        return (VARIANT_A,)
+    return (VARIANT_A, VARIANT_B)
 
 
 def build_pipeline(
@@ -191,12 +200,14 @@ def build_pipeline(
     """
     cfg = cfg or load_config()
     variant = str(variant).upper()
-    if model_name not in MODEL_NAMES:
-        raise ValueError(f"Неизвестная модель {model_name!r}, ожидается одна из {MODEL_NAMES}.")
+    if model_name not in SUPPORTED_MODELS:
+        raise ValueError(f"Неизвестная модель {model_name!r}, ожидается одна из {SUPPORTED_MODELS}.")
     if variant not in {VARIANT_A, VARIANT_B}:
         raise ValueError(f"Неизвестный вариант {variant!r}, ожидается 'A' или 'B'.")
-    if variant == VARIANT_B and model_name == "logreg":
-        raise ValueError("У LogisticRegression нет нативного варианта B: используйте вариант A.")
+    if variant == VARIANT_B and model_name in {"logreg", DUMMY_MODEL}:
+        raise ValueError(
+            f"У модели {model_name!r} нет нативного варианта B: используйте вариант A."
+        )
 
     estimator = build_estimator(model_name, variant, cfg, params)
     if variant == VARIANT_A:

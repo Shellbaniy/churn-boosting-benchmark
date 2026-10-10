@@ -36,7 +36,8 @@ smoke:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/smoke.log', encoding='utf-8').read())"
 
 baseline:
-	$(PY) -m src.baseline
+	$(PY) -m src.baseline > reports/logs/baseline.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/baseline.log', encoding='utf-8').read())"
 
 tune-smoke:
 	$(PY) -m src.tune --smoke

@@ -58,7 +58,8 @@ type reports\logs\smoke.log
 goto end
 
 :baseline
-%PY% -m src.baseline
+%PY% -m src.baseline > reports\logs\baseline.log 2>&1
+type reports\logs\baseline.log
 goto end
 
 :tune_smoke

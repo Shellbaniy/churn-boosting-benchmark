@@ -124,9 +124,10 @@
 - **Риски:** заполнение `TotalCharges` и scaling только внутри фолда; совместимость native dtype.
 
 ### Этап 4 — Baseline
-- [ ] Готово
+- [x] Готово
 - **Цель:** опорные числа.
-- **Файлы:** `src/baseline.py`; **Выходы:** `reports/tables/baseline.csv`, `reports/logs/baseline.log`.
+- **Файлы:** `src/baseline.py`; **Выходы:** `reports/tables/baseline.csv`,
+  `reports/tables/baseline_folds.csv`, `reports/logs/baseline.log`.
 - **Состав:** `DummyClassifier(prior)`; `LogisticRegression(OHE+scaling)`; xgb/lgbm/catboost с
   дефолтами в обоих пайплайнах; CV на train.
 - **Готовность:** `make baseline` печатает таблицу метрик и времени; ROC-AUC ~0.82–0.85.
