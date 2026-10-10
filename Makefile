@@ -1,12 +1,13 @@
 PY ?= .venv/Scripts/python.exe
 
-.PHONY: help setup data eda baseline tune-smoke tune benchmark stats explain test all clean
+.PHONY: help setup data eda smoke baseline tune-smoke tune benchmark stats explain test all clean
 
 help:
 	@echo "churn-boosting-benchmark: available targets"
 	@echo "  setup       - create .venv and install pinned dependencies"
 	@echo "  data        - load, clean and split data (train/test indices)"
 	@echo "  eda         - run EDA and save figures"
+	@echo "  smoke       - train default models on shared 5-fold CV (train only)"
 	@echo "  baseline    - run baseline models with CV"
 	@echo "  tune-smoke  - Optuna smoke run (5 trials per model)"
 	@echo "  tune        - full Optuna run (100 trials per model)"
@@ -29,6 +30,10 @@ data:
 eda:
 	$(PY) -m src.eda > reports/logs/eda.log 2>&1
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/eda.log', encoding='utf-8').read())"
+
+smoke:
+	$(PY) -m src.pipelines > reports/logs/smoke.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/smoke.log', encoding='utf-8').read())"
 
 baseline:
 	$(PY) -m src.baseline

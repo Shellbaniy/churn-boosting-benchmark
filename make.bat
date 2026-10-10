@@ -8,6 +8,7 @@ if /I "%~1"=="help" goto help
 if /I "%~1"=="setup" goto setup
 if /I "%~1"=="data" goto data
 if /I "%~1"=="eda" goto eda
+if /I "%~1"=="smoke" goto smoke
 if /I "%~1"=="baseline" goto baseline
 if /I "%~1"=="tune-smoke" goto tune_smoke
 if /I "%~1"=="tune" goto tune
@@ -24,6 +25,7 @@ echo churn-boosting-benchmark: available targets
 echo   setup       - create .venv and install pinned dependencies
 echo   data        - load, clean and split data
 echo   eda         - run EDA and save figures
+echo   smoke       - train default models on shared 5-fold CV (train only)
 echo   baseline    - run baseline models with CV
 echo   tune-smoke  - Optuna smoke run (5 trials per model)
 echo   tune        - full Optuna run (100 trials per model)
@@ -48,6 +50,11 @@ goto end
 :eda
 %PY% -m src.eda > reports\logs\eda.log 2>&1
 type reports\logs\eda.log
+goto end
+
+:smoke
+%PY% -m src.pipelines > reports\logs\smoke.log 2>&1
+type reports\logs\smoke.log
 goto end
 
 :baseline

@@ -114,7 +114,7 @@
 - **Риски:** не плодить однотипные графики.
 
 ### Этап 3 — Пайплайны A/B и фабрики моделей
-- [ ] Готово
+- [x] Готово
 - **Цель:** препроцессинг строго внутри `Pipeline`/`ColumnTransformer`; нативные ветки.
 - **Файлы:** `src/pipelines.py`, `tests/test_no_leakage.py`, `tests/test_determinism.py`,
   `tests/conftest.py`; (изменить) `Makefile`.

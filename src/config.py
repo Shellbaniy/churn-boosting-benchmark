@@ -13,6 +13,7 @@ CONFIG_DIR = PROJECT_ROOT / "configs"
 @dataclass(frozen=True)
 class Config:
     seed: int
+    n_jobs: int
     raw_data: Path
     processed_dir: Path
     split_indices: Path
@@ -55,6 +56,7 @@ def load_config(path: Path | None = None) -> Config:
     paths, data, cv, tuning = raw["paths"], raw["data"], raw["cv"], raw["tuning"]
     return Config(
         seed=int(raw["seed"]),
+        n_jobs=int(raw.get("n_jobs", 1)),
         raw_data=_resolve(paths["raw_data"]),
         processed_dir=_resolve(paths["processed_dir"]),
         split_indices=_resolve(paths["split_indices"]),
