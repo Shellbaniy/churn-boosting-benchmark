@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 set PY=.venv\Scripts\python.exe
 
@@ -40,7 +41,8 @@ python -m venv .venv
 goto end
 
 :data
-%PY% -m src.data
+%PY% -m src.data > reports\logs\data.log 2>&1
+type reports\logs\data.log
 goto end
 
 :eda

@@ -4,10 +4,18 @@ from __future__ import annotations
 import json
 import logging
 import random
+import sys
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+
+def configure_utf8_output() -> None:
+    """UTF-8 для stdout/stderr: при редиректе в файл Windows берёт cp1252."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
 
 
 def set_global_seed(seed: int) -> None:

@@ -23,7 +23,8 @@ setup:
 	$(PY) -m pip install -r requirements.txt
 
 data:
-	$(PY) -m src.data
+	$(PY) -m src.data > reports/logs/data.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/data.log', encoding='utf-8').read())"
 
 eda:
 	$(PY) -m src.eda

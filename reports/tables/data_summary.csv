@@ -1,0 +1,2 @@
+n_rows,n_cols,n_features,churn_rate,missing_total_charges_raw,missing_total_charges_tenure0,duplicate_rows,dropped_columns,train_rows,test_rows,train_churn_rate,test_churn_rate
+7043,20,19,0.2654,11,11,22,customerID,5634,1409,0.2654,0.2654
