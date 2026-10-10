@@ -12,6 +12,7 @@ if /I "%~1"=="smoke" goto smoke
 if /I "%~1"=="baseline" goto baseline
 if /I "%~1"=="tune-smoke" goto tune_smoke
 if /I "%~1"=="tune" goto tune
+if /I "%~1"=="tune-one" goto one
 if /I "%~1"=="benchmark" goto benchmark
 if /I "%~1"=="stats" goto stats
 if /I "%~1"=="explain" goto explain
@@ -29,6 +30,7 @@ echo   smoke       - train default models on shared 5-fold CV (train only)
 echo   baseline    - run baseline models with CV
 echo   tune-smoke  - Optuna smoke run (5 trials per model)
 echo   tune        - full Optuna run (100 trials per model)
+echo   tune-one    - one study: make.bat tune-one xgb A 100
 echo   benchmark   - final benchmark on holdout test
 echo   stats       - statistical significance tests
 echo   explain     - SHAP explanations
@@ -63,11 +65,17 @@ type reports\logs\baseline.log
 goto end
 
 :tune_smoke
-%PY% -m src.tune --smoke
+%PY% -u -m src.tune --smoke > reports\logs\tune_smoke.log 2>&1
+type reports\logs\tune_smoke.log
 goto end
 
 :tune
-%PY% -m src.tune
+%PY% -u -m src.tune > reports\logs\tune_full.log 2>&1
+type reports\logs\tune_full.log
+goto end
+
+:one
+%PY% -u -m src.tune --model %~2 --variant %~3 --trials %~4
 goto end
 
 :benchmark

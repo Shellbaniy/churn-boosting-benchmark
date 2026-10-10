@@ -1,7 +1,9 @@
-# Пространства поиска Optuna. Распределение log=True для learning_rate и регуляризации.
-# Заполняется на этапе 5 (tune). Здесь фиксируется схема, чтобы она была воспроизводимой.
+# Пространства поиска Optuna (этап 5). Ключи моделей совпадают с src/pipelines.py::MODEL_NAMES.
+# Схема описания распределения: type (int|float|categorical), low/high/step/choices,
+# log: true — лог-шкала (learning_rate и регуляризация ищутся в лог-шкале).
+# Секция variant_b добавляет параметры, которые есть только у нативного варианта B.
 
-xgboost:
+xgb:
   n_estimators:
     type: int
     low: 200
@@ -9,7 +11,7 @@ xgboost:
     step: 100
   learning_rate:
     type: float
-    low: 0.005
+    low: 0.01
     high: 0.3
     log: true
   max_depth:
@@ -45,7 +47,7 @@ xgboost:
     high: 5.0
     log: true
 
-lightgbm:
+lgbm:
   n_estimators:
     type: int
     low: 200
@@ -53,7 +55,7 @@ lightgbm:
     step: 100
   learning_rate:
     type: float
-    low: 0.005
+    low: 0.01
     high: 0.3
     log: true
   num_leaves:
@@ -83,24 +85,25 @@ lightgbm:
     high: 10.0
     log: true
 
+# iterations до 1000: обучение останавливается early stopping по inner-val.
 catboost:
   iterations:
     type: int
     low: 200
-    high: 2000
+    high: 1000
     step: 100
   learning_rate:
     type: float
-    low: 0.005
+    low: 0.03
     high: 0.3
     log: true
   depth:
     type: int
-    low: 3
-    high: 10
+    low: 4
+    high: 8
   l2_leaf_reg:
     type: float
-    low: 1.0e-3
+    low: 1.0
     high: 30.0
     log: true
   random_strength:
@@ -112,3 +115,19 @@ catboost:
     type: float
     low: 0.0
     high: 2.0
+
+# Небольшой поиск для честного сравнения с бустингами (по умолчанию 20 trials).
+logreg:
+  C:
+    type: float
+    low: 1.0e-3
+    high: 1.0e3
+    log: true
+
+variant_b:
+  catboost:
+    max_ctr_complexity:
+      type: int
+      low: 1
+      high: 2
+

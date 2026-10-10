@@ -11,6 +11,8 @@ reports/runs/
 reports/logs/
 reports/mlflow.db
 reports/mlflow.db-*
+reports/optuna.db
+reports/optuna.db-*
 
 .DS_Store
 Thumbs.db

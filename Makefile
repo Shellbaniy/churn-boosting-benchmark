@@ -1,6 +1,9 @@
 PY ?= .venv/Scripts/python.exe
+MODEL ?= xgb
+VARIANT ?= A
+TRIALS ?= 100
 
-.PHONY: help setup data eda smoke baseline tune-smoke tune benchmark stats explain test all clean
+.PHONY: help setup data eda smoke baseline tune-smoke tune tune-one benchmark stats explain test all clean
 
 help:
 	@echo "churn-boosting-benchmark: available targets"
@@ -11,6 +14,7 @@ help:
 	@echo "  baseline    - run baseline models with CV"
 	@echo "  tune-smoke  - Optuna smoke run (5 trials per model)"
 	@echo "  tune        - full Optuna run (100 trials per model)"
+	@echo "  tune-one    - one study: make tune-one MODEL=xgb VARIANT=A TRIALS=100"
 	@echo "  benchmark   - final benchmark on holdout test"
 	@echo "  stats       - statistical significance tests"
 	@echo "  explain     - SHAP explanations"
@@ -40,10 +44,15 @@ baseline:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/baseline.log', encoding='utf-8').read())"
 
 tune-smoke:
-	$(PY) -m src.tune --smoke
+	$(PY) -u -m src.tune --smoke > reports/logs/tune_smoke.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/tune_smoke.log', encoding='utf-8').read())"
 
 tune:
-	$(PY) -m src.tune
+	$(PY) -u -m src.tune > reports/logs/tune_full.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/tune_full.log', encoding='utf-8').read())"
+
+tune-one:
+	$(PY) -u -m src.tune --model $(MODEL) --variant $(VARIANT) --trials $(TRIALS)
 
 benchmark:
 	$(PY) -m src.evaluate

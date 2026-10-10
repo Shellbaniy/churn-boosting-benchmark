@@ -10,6 +10,7 @@ paths:
   logs_dir: reports/logs
   mlflow_db: reports/mlflow.db
   mlflow_artifacts: reports/runs
+  optuna_db: reports/optuna.db
 
 data:
   target: Churn
@@ -25,9 +26,15 @@ cv:
 tuning:
   n_trials: 100
   smoke_trials: 5
+  logreg_trials: 20
+  # Потоки для xgb/lgbm/catboost во время тюнинга. null = половина os.cpu_count().
+  n_jobs: null
+  # Терпение early stopping внутри trial (обучение на inner-train, контроль по inner-val).
+  es_rounds: 50
   sampler: tpe
   pruner: median
   metric: roc_auc
+  mlflow_experiment: churn-boosting-benchmark
 
 models:
   - xgboost

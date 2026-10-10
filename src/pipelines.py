@@ -114,7 +114,19 @@ class CatBoostNative(BaseEstimator, ClassifierMixin):
         self.thread_count = thread_count
         self.params = params
 
-    def fit(self, X: pd.DataFrame, y: Any) -> "CatBoostNative":
+    def fit(
+        self,
+        X: pd.DataFrame,
+        y: Any,
+        eval_set: list[tuple[pd.DataFrame, Any]] | None = None,
+        early_stopping_rounds: int | None = None,
+        use_best_model: bool | None = None,
+    ) -> "CatBoostNative":
+        """eval_set/early_stopping_rounds нужны тюнингу (этап 5).
+
+        Валидация приходит уже преобразованным нативным представлением категорий:
+        препроцессинг выполняется внутри Pipeline до вызова fit.
+        """
         self.cat_features_ = categorical_columns(X)
         self.model_ = CatBoostClassifier(
             random_state=self.random_state,
@@ -124,10 +136,22 @@ class CatBoostNative(BaseEstimator, ClassifierMixin):
             cat_features=self.cat_features_,
             **(self.params or {}),
         )
-        self.model_.fit(X, y)
+        fit_kwargs: dict[str, Any] = {}
+        if eval_set is not None:
+            fit_kwargs["eval_set"] = eval_set
+            fit_kwargs["use_best_model"] = True if use_best_model is None else use_best_model
+        if early_stopping_rounds is not None:
+            fit_kwargs["early_stopping_rounds"] = int(early_stopping_rounds)
+        self.model_.fit(X, y, **fit_kwargs)
         self.classes_ = np.asarray(self.model_.classes_).ravel()
         self.n_features_in_ = X.shape[1]
         return self
+
+    def get_best_iteration(self) -> int | None:
+        """Лучшая итерация модели (нужна тюнингу при early stopping)."""
+        if not hasattr(self, "model_"):
+            return None
+        return int(self.model_.get_best_iteration())
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         return self.model_.predict_proba(X)
