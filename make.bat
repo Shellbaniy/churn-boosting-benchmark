@@ -81,7 +81,8 @@ if not "%~5"=="" set TAGARG=--tag %~5
 goto end
 
 :benchmark
-%PY% -m src.evaluate
+%PY% -u -m src.evaluate > reports\logs\benchmark.log 2>&1
+type reports\logs\benchmark.log
 goto end
 
 :stats

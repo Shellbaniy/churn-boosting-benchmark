@@ -134,7 +134,7 @@
 - **Риски:** результат > 0.85 → искать утечку.
 
 ### Этап 5 — Тюнинг Optuna
-- [ ] Готово
+- [x] Готово
 - **Цель:** подбор гиперпараметров на train через CV.
 - **Файлы:** `src/tune.py`; **Выходы:** `reports/tables/best_params.json`,
   `reports/figures/optuna_history_*.png`, `reports/figures/optuna_importance_*.png`,
@@ -151,9 +151,11 @@
 - **Файлы:** `src/evaluate.py`; **Выходы:** `reports/tables/test_benchmark.csv`,
   `reports/tables/test_predictions.parquet` (кэш для этапа 7), `reports/figures/test_*.png`,
   `reports/logs/benchmark.log`.
-- **Логика:** обучение на train; порог по max ожидаемой прибыли на **out-of-fold предсказаниях train**;
+- **Логика:** обучение на train; порог по max прибыли на **out-of-fold предсказаниях train**;
   метрики на тесте: ROC-AUC, PR-AUC, F1, recall, precision, Brier + calibration curve, время
-  train/inference; `ExpectedProfit(t) = Σ_{p_i ≥ t}[p_i · CLV · success_rate − cost]`;
+  train/inference; `Profit(t) = Σ_{p_i ≥ t}[y_i · CLV · success_rate − cost]` — по фактическим
+  меткам `y_i` OOF-части train, а не по вероятностям `p_i` как весам: калибровка бустингов
+  не проверялась, поэтому `p_i` дали бы смещённую прибыль;
   sensitivity по сетке `retention_success_rate`.
 - **Готовность:** `make benchmark` печатает таблицу метрик/времени и бизнес-таблицу; создан
   `test_predictions.parquet`. **Тест читается только здесь.**

@@ -56,7 +56,8 @@ tune-one:
 	$(PY) -u -m src.tune --model $(MODEL) --variant $(VARIANT) --trials $(TRIALS) $(if $(TAG),--tag $(TAG))
 
 benchmark:
-	$(PY) -m src.evaluate
+	$(PY) -u -m src.evaluate > reports/logs/benchmark.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/benchmark.log', encoding='utf-8').read())"
 
 stats:
 	$(PY) -m src.stats

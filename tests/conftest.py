@@ -12,6 +12,10 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.config import Config, load_config  # noqa: E402
 from src.data import load_split  # noqa: E402
+from src.utils import configure_utf8_output  # noqa: E402
+
+# При редиректе вывода pytest в файл Windows отдаёт cp1252: русские print падали бы с UnicodeEncodeError.
+configure_utf8_output()
 
 
 @pytest.fixture(scope="session")
