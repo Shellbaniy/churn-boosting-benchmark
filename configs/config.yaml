@@ -1,0 +1,34 @@
+seed: 42
+
+paths:
+  raw_data: data/raw/WA_Fn-UseC_-Telco-Customer-Churn.csv
+  processed_dir: data/processed
+  split_indices: data/processed/split_indices.npz
+  figures_dir: reports/figures
+  tables_dir: reports/tables
+  logs_dir: reports/logs
+  mlflow_db: reports/mlflow.db
+  mlflow_artifacts: reports/runs
+
+data:
+  target: Churn
+  id_column: customerID
+  test_size: 0.2
+  stratify: true
+
+cv:
+  n_splits: 5
+  n_repeats: 5
+  inner_valid_size: 0.2
+
+tuning:
+  n_trials: 100
+  smoke_trials: 5
+  sampler: tpe
+  pruner: median
+  metric: roc_auc
+
+models:
+  - xgboost
+  - lightgbm
+  - catboost
