@@ -1,0 +1,22 @@
+model,evaluate_key,label,metric,value,ci_low,ci_high,threshold
+xgb_A_wide,xgb_A_tuned,XGBoost A,roc_auc,0.847386,0.824907,0.867673,0.36
+xgb_A_wide,xgb_A_tuned,XGBoost A,pr_auc,0.667498,0.6156,0.716238,0.36
+xgb_A_wide,xgb_A_tuned,XGBoost A,profit_per_customer,11.92335,9.510291,14.300923,0.36
+xgb_B_wide,xgb_B_tuned,XGBoost B,roc_auc,0.847316,0.82476,0.867631,0.35
+xgb_B_wide,xgb_B_tuned,XGBoost B,pr_auc,0.666725,0.614948,0.715551,0.35
+xgb_B_wide,xgb_B_tuned,XGBoost B,profit_per_customer,11.958836,9.474805,14.371895,0.35
+lgbm_A_wide,lgbm_A_tuned,LightGBM A,roc_auc,0.845938,0.823465,0.866371,0.37
+lgbm_A_wide,lgbm_A_tuned,LightGBM A,pr_auc,0.667872,0.616854,0.715921,0.37
+lgbm_A_wide,lgbm_A_tuned,LightGBM A,profit_per_customer,11.887864,9.510291,14.265436,0.37
+lgbm_B_wide,lgbm_B_tuned,LightGBM B,roc_auc,0.847508,0.824899,0.867976,0.32
+lgbm_B_wide,lgbm_B_tuned,LightGBM B,pr_auc,0.662586,0.610433,0.712331,0.32
+lgbm_B_wide,lgbm_B_tuned,LightGBM B,profit_per_customer,11.994322,9.474805,14.478353,0.32
+catboost_A_wide,catboost_A_tuned,CatBoost A,roc_auc,0.847184,0.824929,0.867351,0.36
+catboost_A_wide,catboost_A_tuned,CatBoost A,pr_auc,0.666875,0.615443,0.715974,0.36
+catboost_A_wide,catboost_A_tuned,CatBoost A,profit_per_customer,11.46203,9.013485,13.839603,0.36
+catboost_B_wide,catboost_B_tuned,CatBoost B,roc_auc,0.846254,0.823746,0.866749,0.33
+catboost_B_wide,catboost_B_tuned,CatBoost B,pr_auc,0.66783,0.616324,0.716278,0.33
+catboost_B_wide,catboost_B_tuned,CatBoost B,profit_per_customer,11.46203,8.942512,13.875089,0.33
+logreg_A,logreg_tuned,LogisticRegression A,roc_auc,0.840998,0.818015,0.8617,0.32
+logreg_A,logreg_tuned,LogisticRegression A,pr_auc,0.627139,0.572998,0.682852,0.32
+logreg_A,logreg_tuned,LogisticRegression A,profit_per_customer,10.71682,8.161817,13.166253,0.32

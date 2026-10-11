@@ -1,0 +1,16 @@
+pair,family,model_a,model_b,label_a,label_b,evaluate_key_a,evaluate_key_b,threshold_a,threshold_b,b_a_right,c_b_right,n_discordant,p,p_holm
+xgb_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,xgb_A_wide,logreg_A,XGBoost A,LogisticRegression A,xgb_A_tuned,logreg_tuned,0.36,0.32,58,23,81,0.00012661,0.00063306
+xgb_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,xgb_B_wide,logreg_A,XGBoost B,LogisticRegression A,xgb_B_tuned,logreg_tuned,0.35,0.32,50,18,68,0.00013084,0.00063306
+lgbm_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,lgbm_A_wide,logreg_A,LightGBM A,LogisticRegression A,lgbm_A_tuned,logreg_tuned,0.37,0.32,57,18,75,7.24e-06,4.346e-05
+lgbm_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,lgbm_B_wide,logreg_A,LightGBM B,LogisticRegression A,lgbm_B_tuned,logreg_tuned,0.32,0.32,51,26,77,0.00587071,0.01174142
+catboost_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,catboost_A_wide,logreg_A,CatBoost A,LogisticRegression A,catboost_A_tuned,logreg_tuned,0.36,0.32,52,20,72,0.00020772,0.00063306
+catboost_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,catboost_B_wide,logreg_A,CatBoost B,LogisticRegression A,catboost_B_tuned,logreg_tuned,0.33,0.32,43,27,70,0.07223793,0.07223793
+xgb_A_wide vs xgb_B_wide,H2: вариант A vs B,xgb_A_wide,xgb_B_wide,XGBoost A,XGBoost B,xgb_A_tuned,xgb_B_tuned,0.36,0.35,12,9,21,0.66362381,0.66362381
+lgbm_A_wide vs lgbm_B_wide,H2: вариант A vs B,lgbm_A_wide,lgbm_B_wide,LightGBM A,LightGBM B,lgbm_A_tuned,lgbm_B_tuned,0.37,0.32,39,25,64,0.10342188,0.20684376
+catboost_A_wide vs catboost_B_wide,H2: вариант A vs B,catboost_A_wide,catboost_B_wide,CatBoost A,CatBoost B,catboost_A_tuned,catboost_B_tuned,0.36,0.33,34,18,52,0.0364834,0.1094502
+xgb_A_wide vs lgbm_A_wide,H3: алгоритм vs алгоритм,xgb_A_wide,lgbm_A_wide,XGBoost A,LightGBM A,xgb_A_tuned,lgbm_A_tuned,0.36,0.37,11,15,26,0.55719709,1.0
+xgb_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,xgb_A_wide,catboost_A_wide,XGBoost A,CatBoost A,xgb_A_tuned,catboost_A_tuned,0.36,0.36,19,16,35,0.7358788,1.0
+lgbm_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,lgbm_A_wide,catboost_A_wide,LightGBM A,CatBoost A,lgbm_A_tuned,catboost_A_tuned,0.37,0.36,18,11,29,0.2649309,1.0
+xgb_B_wide vs lgbm_B_wide,H3: алгоритм vs алгоритм,xgb_B_wide,lgbm_B_wide,XGBoost B,LightGBM B,xgb_B_tuned,lgbm_B_tuned,0.35,0.32,27,20,47,0.3816934,1.0
+xgb_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,xgb_B_wide,catboost_B_wide,XGBoost B,CatBoost B,xgb_B_tuned,catboost_B_tuned,0.35,0.33,26,10,36,0.01133098,0.06798591
+lgbm_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,lgbm_B_wide,catboost_B_wide,LightGBM B,CatBoost B,lgbm_B_tuned,catboost_B_tuned,0.32,0.33,24,15,39,0.19959087,0.99795433

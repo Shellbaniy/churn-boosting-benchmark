@@ -1,0 +1,46 @@
+pair,family,metric,model_a,model_b,label_a,label_b,evaluate_key_a,evaluate_key_b,diff_mean,ci_low,ci_high,p,p_holm
+xgb_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,roc_auc,xgb_A_wide,logreg_A,XGBoost A,LogisticRegression A,xgb_A_tuned,logreg_tuned,0.006416,0.000291,0.012516,0.0412,0.1648
+xgb_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,pr_auc,xgb_A_wide,logreg_A,XGBoost A,LogisticRegression A,xgb_A_tuned,logreg_tuned,0.039067,0.017122,0.060946,0.0008,0.0016
+xgb_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,profit_per_customer,xgb_A_wide,logreg_A,XGBoost A,LogisticRegression A,xgb_A_tuned,logreg_tuned,1.200731,0.319375,2.093683,0.0084,0.0252
+xgb_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,roc_auc,xgb_B_wide,logreg_A,XGBoost B,LogisticRegression A,xgb_B_tuned,logreg_tuned,0.006345,0.000557,0.012063,0.0292,0.146
+xgb_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,pr_auc,xgb_B_wide,logreg_A,XGBoost B,LogisticRegression A,xgb_B_tuned,logreg_tuned,0.038335,0.017535,0.059394,0.0002,0.0012
+xgb_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,profit_per_customer,xgb_B_wide,logreg_A,XGBoost B,LogisticRegression A,xgb_B_tuned,logreg_tuned,1.237786,0.425834,2.058197,0.0028,0.0144
+lgbm_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,roc_auc,lgbm_A_wide,logreg_A,LightGBM A,LogisticRegression A,lgbm_A_tuned,logreg_tuned,0.004984,-0.001064,0.010933,0.1044,0.1896
+lgbm_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,pr_auc,lgbm_A_wide,logreg_A,LightGBM A,LogisticRegression A,lgbm_A_tuned,logreg_tuned,0.039457,0.016698,0.062099,0.0004,0.0012
+lgbm_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,profit_per_customer,lgbm_A_wide,logreg_A,LightGBM A,LogisticRegression A,lgbm_A_tuned,logreg_tuned,1.169397,0.354862,1.987225,0.0056,0.0224
+lgbm_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,roc_auc,lgbm_B_wide,logreg_A,LightGBM B,LogisticRegression A,lgbm_B_tuned,logreg_tuned,0.006577,-3.8e-05,0.013276,0.0508,0.1648
+lgbm_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,pr_auc,lgbm_B_wide,logreg_A,LightGBM B,LogisticRegression A,lgbm_B_tuned,logreg_tuned,0.034232,0.012552,0.055534,0.0032,0.0032
+lgbm_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,profit_per_customer,lgbm_B_wide,logreg_A,LightGBM B,LogisticRegression A,lgbm_B_tuned,logreg_tuned,1.277913,0.425834,2.164656,0.0024,0.0144
+catboost_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,roc_auc,catboost_A_wide,logreg_A,CatBoost A,LogisticRegression A,catboost_A_tuned,logreg_tuned,0.006251,0.000945,0.011505,0.0216,0.1296
+catboost_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,pr_auc,catboost_A_wide,logreg_A,CatBoost A,LogisticRegression A,catboost_A_tuned,logreg_tuned,0.038638,0.018359,0.058955,0.0002,0.0012
+catboost_A_wide vs logreg_A,H1: бустинг vs logreg_tuned,profit_per_customer,catboost_A_wide,logreg_A,CatBoost A,LogisticRegression A,catboost_A_tuned,logreg_tuned,0.750248,-0.070972,1.561391,0.086,0.172
+catboost_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,roc_auc,catboost_B_wide,logreg_A,CatBoost B,LogisticRegression A,catboost_B_tuned,logreg_tuned,0.005282,-0.000843,0.011622,0.0948,0.1896
+catboost_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,pr_auc,catboost_B_wide,logreg_A,CatBoost B,LogisticRegression A,catboost_B_tuned,logreg_tuned,0.039363,0.017039,0.060972,0.0002,0.0012
+catboost_B_wide vs logreg_A,H1: бустинг vs logreg_tuned,profit_per_customer,catboost_B_wide,logreg_A,CatBoost B,LogisticRegression A,catboost_B_tuned,logreg_tuned,0.73484,-0.070972,1.561391,0.0872,0.172
+xgb_A_wide vs xgb_B_wide,H2: вариант A vs B,roc_auc,xgb_A_wide,xgb_B_wide,XGBoost A,XGBoost B,xgb_A_tuned,xgb_B_tuned,7.1e-05,-0.001744,0.001865,0.9564,1.0
+xgb_A_wide vs xgb_B_wide,H2: вариант A vs B,pr_auc,xgb_A_wide,xgb_B_wide,XGBoost A,XGBoost B,xgb_A_tuned,xgb_B_tuned,0.000732,-0.003998,0.005405,0.758,1.0
+xgb_A_wide vs xgb_B_wide,H2: вариант A vs B,profit_per_customer,xgb_A_wide,xgb_B_wide,XGBoost A,XGBoost B,xgb_A_tuned,xgb_B_tuned,-0.037055,-0.496806,0.425834,0.938,1.0
+lgbm_A_wide vs lgbm_B_wide,H2: вариант A vs B,roc_auc,lgbm_A_wide,lgbm_B_wide,LightGBM A,LightGBM B,lgbm_A_tuned,lgbm_B_tuned,-0.001593,-0.005923,0.002624,0.4428,1.0
+lgbm_A_wide vs lgbm_B_wide,H2: вариант A vs B,pr_auc,lgbm_A_wide,lgbm_B_wide,LightGBM A,LightGBM B,lgbm_A_tuned,lgbm_B_tuned,0.005226,-0.005862,0.016575,0.362,1.0
+lgbm_A_wide vs lgbm_B_wide,H2: вариант A vs B,profit_per_customer,lgbm_A_wide,lgbm_B_wide,LightGBM A,LightGBM B,lgbm_A_tuned,lgbm_B_tuned,-0.108517,-0.888041,0.638751,0.8384,1.0
+catboost_A_wide vs catboost_B_wide,H2: вариант A vs B,roc_auc,catboost_A_wide,catboost_B_wide,CatBoost A,CatBoost B,catboost_A_tuned,catboost_B_tuned,0.00097,-0.002442,0.004371,0.5876,1.0
+catboost_A_wide vs catboost_B_wide,H2: вариант A vs B,pr_auc,catboost_A_wide,catboost_B_wide,CatBoost A,CatBoost B,catboost_A_tuned,catboost_B_tuned,-0.000725,-0.010757,0.009181,0.8968,1.0
+catboost_A_wide vs catboost_B_wide,H2: вариант A vs B,profit_per_customer,catboost_A_wide,catboost_B_wide,CatBoost A,CatBoost B,catboost_A_tuned,catboost_B_tuned,0.015408,-0.709723,0.675124,0.994,1.0
+xgb_A_wide vs lgbm_A_wide,H3: алгоритм vs алгоритм,roc_auc,xgb_A_wide,lgbm_A_wide,XGBoost A,LightGBM A,xgb_A_tuned,lgbm_A_tuned,0.001432,-0.000931,0.003736,0.2292,1.0
+xgb_A_wide vs lgbm_A_wide,H3: алгоритм vs алгоритм,pr_auc,xgb_A_wide,lgbm_A_wide,XGBoost A,LightGBM A,xgb_A_tuned,lgbm_A_tuned,-0.00039,-0.006359,0.005041,0.9112,1.0
+xgb_A_wide vs lgbm_A_wide,H3: алгоритм vs алгоритм,profit_per_customer,xgb_A_wide,lgbm_A_wide,XGBoost A,LightGBM A,xgb_A_tuned,lgbm_A_tuned,0.031334,-0.496806,0.603265,0.966,1.0
+xgb_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,roc_auc,xgb_A_wide,catboost_A_wide,XGBoost A,CatBoost A,xgb_A_tuned,catboost_A_tuned,0.000165,-0.003109,0.003397,0.93,1.0
+xgb_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,pr_auc,xgb_A_wide,catboost_A_wide,XGBoost A,CatBoost A,xgb_A_tuned,catboost_A_tuned,0.00043,-0.008304,0.009414,0.9212,1.0
+xgb_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,profit_per_customer,xgb_A_wide,catboost_A_wide,XGBoost A,CatBoost A,xgb_A_tuned,catboost_A_tuned,0.450483,-0.177431,1.100071,0.174,0.696
+lgbm_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,roc_auc,lgbm_A_wide,catboost_A_wide,LightGBM A,CatBoost A,lgbm_A_tuned,catboost_A_tuned,-0.001267,-0.004413,0.001862,0.4336,1.0
+lgbm_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,pr_auc,lgbm_A_wide,catboost_A_wide,LightGBM A,CatBoost A,lgbm_A_tuned,catboost_A_tuned,0.000819,-0.008843,0.010591,0.8732,1.0
+lgbm_A_wide vs catboost_A_wide,H3: алгоритм vs алгоритм,profit_per_customer,lgbm_A_wide,catboost_A_wide,LightGBM A,CatBoost A,lgbm_A_tuned,catboost_A_tuned,0.419148,-0.177431,1.029099,0.188,0.696
+xgb_B_wide vs lgbm_B_wide,H3: алгоритм vs алгоритм,roc_auc,xgb_B_wide,lgbm_B_wide,XGBoost B,LightGBM B,xgb_B_tuned,lgbm_B_tuned,-0.000232,-0.004166,0.003678,0.9188,1.0
+xgb_B_wide vs lgbm_B_wide,H3: алгоритм vs алгоритм,pr_auc,xgb_B_wide,lgbm_B_wide,XGBoost B,LightGBM B,xgb_B_tuned,lgbm_B_tuned,0.004104,-0.005769,0.013972,0.4168,1.0
+xgb_B_wide vs lgbm_B_wide,H3: алгоритм vs алгоритм,profit_per_customer,xgb_B_wide,lgbm_B_wide,XGBoost B,LightGBM B,xgb_B_tuned,lgbm_B_tuned,-0.040128,-0.674237,0.567779,0.962,1.0
+xgb_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,roc_auc,xgb_B_wide,catboost_B_wide,XGBoost B,CatBoost B,xgb_B_tuned,catboost_B_tuned,0.001064,-0.001784,0.003885,0.4568,1.0
+xgb_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,pr_auc,xgb_B_wide,catboost_B_wide,XGBoost B,CatBoost B,xgb_B_tuned,catboost_B_tuned,-0.001028,-0.007027,0.005232,0.7392,1.0
+xgb_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,profit_per_customer,xgb_B_wide,catboost_B_wide,XGBoost B,CatBoost B,xgb_B_tuned,catboost_B_tuned,0.502945,0.0,0.993612,0.0524,0.3144
+lgbm_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,roc_auc,lgbm_B_wide,catboost_B_wide,LightGBM B,CatBoost B,lgbm_B_tuned,catboost_B_tuned,0.001296,-0.002574,0.005123,0.5004,1.0
+lgbm_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,pr_auc,lgbm_B_wide,catboost_B_wide,LightGBM B,CatBoost B,lgbm_B_tuned,catboost_B_tuned,-0.005131,-0.014917,0.00435,0.2888,1.0
+lgbm_B_wide vs catboost_B_wide,H3: алгоритм vs алгоритм,profit_per_customer,lgbm_B_wide,catboost_B_wide,LightGBM B,CatBoost B,lgbm_B_tuned,catboost_B_tuned,0.543073,0.0,1.135557,0.0616,0.3144
