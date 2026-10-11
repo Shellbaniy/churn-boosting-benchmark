@@ -2,6 +2,7 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 set PY=.venv\Scripts\python.exe
+set "SKIP_TUNE=%SKIP_TUNE: =%"
 
 if "%~1"=="" goto help
 if /I "%~1"=="help" goto help
@@ -29,13 +30,19 @@ echo   eda         - run EDA and save figures
 echo   smoke       - train default models on shared 5-fold CV (train only)
 echo   baseline    - run baseline models with CV
 echo   tune-smoke  - Optuna smoke run (5 trials per model)
-echo   tune        - full Optuna run (100 trials per model)
+echo   tune        - full Optuna run (100 trials per model); долгий, ~81 мин (SKIP_TUNE=1 пропускает)
 echo   tune-one    - one study: make.bat tune-one xgb A 100 [tag]
 echo   benchmark   - final benchmark on holdout test
 echo   stats       - statistical significance tests
 echo   explain     - SHAP explanations
 echo   test        - run pytest
-echo   all         - run full pipeline end to end
+echo   all         - full pipeline: data, eda, baseline, tune, benchmark, stats, explain, test
+echo   SKIP_TUNE=1 - set SKIP_TUNE=1 (or 'make.bat tune SKIP_TUNE=1') to skip tuning and reuse
+echo                 the saved reports\tables\best_params.json
+echo.
+echo Внимание: all включает долгий тюнинг: сумма duration_sec по 13 study в
+echo reports\tables\best_params.json = 4838.7 с (~81 мин), из них catboost_B 2561.8 с
+echo и catboost_B_wide 1492.6 с. Быстрый прогон: set "SKIP_TUNE=1" ^&^& make.bat all
 goto end
 
 :setup
@@ -70,8 +77,15 @@ type reports\logs\tune_smoke.log
 goto end
 
 :tune
+if "%SKIP_TUNE%"=="1" goto tune_skip
+if /I "%~2"=="SKIP_TUNE" if "%~3"=="1" goto tune_skip
 %PY% -u -m src.tune > reports\logs\tune_full.log 2>&1
 type reports\logs\tune_full.log
+goto end
+
+:tune_skip
+echo SKIP_TUNE=1: тюнинг пропущен, используется сохранённый reports\tables\best_params.json
+%PY% -X utf8 -c "import pathlib,sys; p=pathlib.Path('reports/tables/best_params.json'); sys.exit('нет ' + str(p) + ': сначала выполните make.bat tune') if not p.exists() else print('использую ' + str(p) + ' (' + str(p.stat().st_size) + ' байт)')"
 goto end
 
 :one

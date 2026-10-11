@@ -14,14 +14,19 @@ help:
 	@echo "  smoke       - train default models on shared 5-fold CV (train only)"
 	@echo "  baseline    - run baseline models with CV"
 	@echo "  tune-smoke  - Optuna smoke run (5 trials per model)"
-	@echo "  tune        - full Optuna run (100 trials per model)"
+	@echo "  tune        - full Optuna run (100 trials per model); долгий, ~81 мин (SKIP_TUNE=1 пропускает)"
 	@echo "  tune-one    - one study: make tune-one MODEL=xgb VARIANT=A TRIALS=100 [TAG=wide]"
 	@echo "  benchmark   - final benchmark on holdout test"
 	@echo "  stats       - statistical significance tests"
 	@echo "  explain     - SHAP explanations"
 	@echo "  test        - run pytest"
-	@echo "  all         - run full pipeline end to end"
+	@echo "  all         - full pipeline: data, eda, baseline, tune, benchmark, stats, explain, test"
 	@echo "  clean       - remove generated artifacts"
+	@echo ""
+	@echo "Внимание: all включает долгий тюнинг. Сумма duration_sec по 13 study в"
+	@echo "reports/tables/best_params.json = 4838.7 с (~81 мин), из них catboost_B 2561.8 с"
+	@echo "и catboost_B_wide 1492.6 с. Быстрый прогон без тюнинга: make all SKIP_TUNE=1"
+	@echo "(тогда тюнинг пропускается и берётся сохранённый reports/tables/best_params.json)."
 
 setup:
 	python -m venv .venv
@@ -49,8 +54,12 @@ tune-smoke:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/tune_smoke.log', encoding='utf-8').read())"
 
 tune:
+ifeq ($(SKIP_TUNE),1)
+	@$(PY) -X utf8 -c "import pathlib, sys; p = pathlib.Path('reports/tables/best_params.json'); sys.exit(f'нет {p}: сначала выполните make tune') if not p.exists() else print(f'SKIP_TUNE=1: тюнинг пропущен, использую сохранённый {p} ({p.stat().st_size} байт)')"
+else
 	$(PY) -u -m src.tune > reports/logs/tune_full.log 2>&1
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/tune_full.log', encoding='utf-8').read())"
+endif
 
 tune-one:
 	$(PY) -u -m src.tune --model $(MODEL) --variant $(VARIANT) --trials $(TRIALS) $(if $(TAG),--tag $(TAG))
