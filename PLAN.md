@@ -179,7 +179,7 @@
 - **Риски:** корректность поправки на зависимость фолдов; интерпретация узких CI.
 
 ### Этап 8 — SHAP и интерпретация
-- [ ] Готово
+- [x] Готово
 - **Цель:** объяснимость и согласованность моделей.
 - **Файлы:** `src/explain.py`; **Выходы:** `reports/figures/shap_bar_*.png`, `shap_beeswarm_*.png`,
   `shap_dependence_{tenure,MonthlyCharges,Contract}_*.png`, `shap_waterfall_case.png`,
@@ -198,14 +198,14 @@
 - **Риски:** native dtype vs матрица для SHAP.
 
 ### Этап 9 — Тесты (pytest) как gate
-- [ ] Готово
+- [x] Готово
 - **Цель:** ≥3 теста (нет утечки, форма данных, детерминизм).
 - **Файлы:** `tests/{conftest,test_no_leakage,test_data_shape,test_determinism}.py`.
 - **Готовность:** `make test` → `pytest -q` все зелёные.
 - **Риски:** детерминизм при многопоточности → фиксируем `n_jobs`/`random_state`.
 
 ### Этап 10 — Статья, README, финализация
-- [ ] Готово
+- [x] Готово
 - **Цель:** академический текст только с реальными числами.
 - **Файлы:** `article/article.md`, `README.md`, `PLAN.md`.
 - **Готовность:** `make all` проходит end-to-end; числа совпадают с `reports/tables/*.csv`.
