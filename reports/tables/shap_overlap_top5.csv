@@ -1,0 +1,11 @@
+model_a,model_b,n_overlap,overlap_share,common_features
+xgb_A_tuned,lgbm_A_tuned,4,0.8,Contract; InternetService; OnlineSecurity; tenure
+xgb_A_tuned,catboost_A_tuned,4,0.8,Contract; InternetService; OnlineSecurity; tenure
+xgb_A_tuned,catboost_B_tuned,4,0.8,Contract; MonthlyCharges; OnlineSecurity; tenure
+xgb_A_tuned,logreg_tuned,4,0.8,Contract; InternetService; MonthlyCharges; tenure
+lgbm_A_tuned,catboost_A_tuned,4,0.8,Contract; InternetService; OnlineSecurity; tenure
+lgbm_A_tuned,catboost_B_tuned,3,0.6,Contract; OnlineSecurity; tenure
+lgbm_A_tuned,logreg_tuned,3,0.6,Contract; InternetService; tenure
+catboost_A_tuned,catboost_B_tuned,3,0.6,Contract; OnlineSecurity; tenure
+catboost_A_tuned,logreg_tuned,3,0.6,Contract; InternetService; tenure
+catboost_B_tuned,logreg_tuned,3,0.6,Contract; MonthlyCharges; tenure

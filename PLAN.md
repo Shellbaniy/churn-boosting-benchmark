@@ -162,7 +162,7 @@
 - **Риски:** подбор порога на тесте (запрещено) → жёстко на train OOF.
 
 ### Этап 7 — Статистическая значимость
-- [ ] Готово
+- [x] Готово
 - **Цель:** вывод «разница в пределах шума».
 - **Файлы:** `src/stats.py`; **Выходы:** `reports/tables/stats_cv_scores.csv` (кэш CV-оценок),
   `stats_resampled_ttest.csv`, `stats_bootstrap_ci.csv`, `stats_bootstrap_diff.csv`,
@@ -181,11 +181,19 @@
 ### Этап 8 — SHAP и интерпретация
 - [ ] Готово
 - **Цель:** объяснимость и согласованность моделей.
-- **Файлы:** `src/explain.py`; **Выходы:** `reports/figures/shap_beeswarm_*.png`, `shap_bar_*.png`,
+- **Файлы:** `src/explain.py`; **Выходы:** `reports/figures/shap_bar_*.png`, `shap_beeswarm_*.png`,
   `shap_dependence_{tenure,MonthlyCharges,Contract}_*.png`, `shap_waterfall_case.png`,
-  `reports/tables/feature_importance_spearman.csv`, `reports/logs/explain.log`.
-- **Логика:** `TreeExplainer` на тесте; dependence plots; Спирмен между важностями моделей; оговорка
-  о корреляции `TotalCharges`/`tenure`/`MonthlyCharges`.
+  `shap_spearman_heatmap.png`, `reports/tables/shap_importance.csv`, `shap_top_features.csv`,
+  `shap_spearman.csv`, `shap_overlap_top5.csv`, `reports/logs/explain.log`.
+- **Логика:** объясняем на тесте, выбор моделей не затрагивается: те же финальные конфигурации этапа 6
+  обучаются на всём train, SHAP считается на отложенных данных; предсказания сверяются с
+  `test_predictions.parquet`. `TreeExplainer` для xgb/lgbm, `get_feature_importance(type="ShapValues")`
+  для catboost, `LinearExplainer` для logreg; значения в лог-шансах, вклады OHE-столбцов суммируются
+  в 19 исходных признаков; dependence plots; Спирмен между важностями моделей; оговорка о корреляции
+  `TotalCharges`/`tenure`/`MonthlyCharges`.
+- **Готовность:** `make explain` создаёт фигуры и таблицы, печатает топ-5 по моделям, матрицу Спирмена
+  и вывод с оговоркой.
+- **Риски:** native dtype vs матрица для SHAP.
 - **Готовность:** `make explain` создаёт фигуры и таблицу корреляций, печатает вывод.
 - **Риски:** native dtype vs матрица для SHAP.
 

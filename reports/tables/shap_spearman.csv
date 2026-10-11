@@ -1,0 +1,11 @@
+model_a,model_b,spearman,p_value,n_features
+xgb_A_tuned,lgbm_A_tuned,0.9522,0.0,19
+xgb_A_tuned,catboost_A_tuned,0.9489,0.0,19
+xgb_A_tuned,catboost_B_tuned,0.8806,1e-06,19
+xgb_A_tuned,logreg_tuned,0.7154,0.000574,19
+lgbm_A_tuned,catboost_A_tuned,0.9137,0.0,19
+lgbm_A_tuned,catboost_B_tuned,0.8453,5e-06,19
+lgbm_A_tuned,logreg_tuned,0.6643,0.00192,19
+catboost_A_tuned,catboost_B_tuned,0.8118,2.4e-05,19
+catboost_A_tuned,logreg_tuned,0.6719,0.001627,19
+catboost_B_tuned,logreg_tuned,0.5573,0.013186,19

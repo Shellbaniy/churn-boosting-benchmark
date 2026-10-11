@@ -172,15 +172,16 @@ def test_final_configurations_are_wide_and_logreg_a() -> None:
         build_specs({key: payload[key] for key in keys[:-1]})
 
 
-def test_test_idx_referenced_only_in_data_and_evaluate() -> None:
-    """Ссылка на test_idx встречается в src/ только у data.py и evaluate.py (аудит утечки)."""
+def test_test_split_is_touched_only_by_allowed_modules() -> None:
+    """Тестовый split трогают только data.py, evaluate.py (единственное чтение) и explain.py (SHAP)."""
+    markers = ("test_idx", "load_test_frame")
     hits = sorted(
         path.name
         for path in (PROJECT_ROOT / "src").glob("*.py")
-        if "test_idx" in path.read_text(encoding="utf-8")
+        if any(marker in path.read_text(encoding="utf-8") for marker in markers)
     )
-    print(f"файлы src/ со ссылкой на test_idx = {hits}")
-    assert hits == ["data.py", "evaluate.py"]
+    print(f"файлы src/ с обращением к тестовому split (маркеры {markers}) = {hits}")
+    assert hits == ["data.py", "evaluate.py", "explain.py"]
 
 
 def test_test_frame_is_read_once(cfg) -> None:

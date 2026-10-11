@@ -64,7 +64,8 @@ stats:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/stats.log', encoding='utf-8').read())"
 
 explain:
-	$(PY) -m src.explain
+	$(PY) -u -m src.explain > reports/logs/explain.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/explain.log', encoding='utf-8').read())"
 
 test:
 	$(PY) -m pytest -q

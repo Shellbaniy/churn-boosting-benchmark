@@ -91,7 +91,8 @@ type reports\logs\stats.log
 goto end
 
 :explain
-%PY% -m src.explain
+%PY% -u -m src.explain > reports\logs\explain.log 2>&1
+type reports\logs\explain.log
 goto end
 
 :test
