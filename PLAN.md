@@ -164,11 +164,16 @@
 ### Этап 7 — Статистическая значимость
 - [ ] Готово
 - **Цель:** вывод «разница в пределах шума».
-- **Файлы:** `src/stats.py`; **Выходы:** `reports/tables/stats_resampled_ttest.csv`,
-  `stats_bootstrap_ci.csv`, `stats_bootstrap_diff.csv`, `stats_mcnemar_holm.csv`, `reports/logs/stats.log`.
-- **Вход:** сохранённые `test_predictions.parquet` и результаты CV. **Тест заново не читается.**
-- **Логика:** RepeatedStratifiedKFold 5×5 на train; corrected resampled t-test (Nadeau & Bengio);
-  bootstrap-CI для ROC-AUC и bootstrap разницы между парами; McNemar на пороге + Holm; effect size.
+- **Файлы:** `src/stats.py`; **Выходы:** `reports/tables/stats_cv_scores.csv` (кэш CV-оценок),
+  `stats_resampled_ttest.csv`, `stats_bootstrap_ci.csv`, `stats_bootstrap_diff.csv`,
+  `stats_mcnemar_holm.csv`, `reports/figures/stats_*.png`, `reports/logs/stats.log`.
+- **Вход:** сохранённые `test_predictions.parquet`, `thresholds.json` и `best_params.json`.
+  **Тест заново не читается** (в модуле нет ни `test_idx`, ни вызова функции единственного чтения теста).
+- **Логика:** RepeatedStratifiedKFold 5×5 на train, одни и те же разбиения для всех моделей;
+  corrected resampled t-test (Nadeau & Bengio) по 15 зарегистрированным парам (H1 — бустинг против
+  logreg_tuned, H2 — A против B, H3 — алгоритмы между собой): разность средних, её CI, d_z и MDE;
+  bootstrap-CI ROC-AUC, PR-AUC и прибыли на клиента на тесте и bootstrap разности между парами
+  (парные выборки, двусторонний бутстрэп-p); McNemar exact на пороге + Holm внутри семейства.
   Фридман не используем.
 - **Готовность:** `make stats` печатает p-value, скорректированные p-value, CI и текстовый вывод по парам.
 - **Риски:** корректность поправки на зависимость фолдов; интерпретация узких CI.

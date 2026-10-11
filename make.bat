@@ -86,7 +86,8 @@ type reports\logs\benchmark.log
 goto end
 
 :stats
-%PY% -m src.stats
+%PY% -u -m src.stats > reports\logs\stats.log 2>&1
+type reports\logs\stats.log
 goto end
 
 :explain

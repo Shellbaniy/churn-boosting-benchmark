@@ -60,7 +60,8 @@ benchmark:
 	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/benchmark.log', encoding='utf-8').read())"
 
 stats:
-	$(PY) -m src.stats
+	$(PY) -u -m src.stats > reports/logs/stats.log 2>&1
+	$(PY) -c "import sys; sys.stdout.write(open('reports/logs/stats.log', encoding='utf-8').read())"
 
 explain:
 	$(PY) -m src.explain
